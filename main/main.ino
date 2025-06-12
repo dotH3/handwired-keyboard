@@ -4,22 +4,24 @@
 BleKeyboard bleKeyboard;
 Bounce debouncer = Bounce();
 
-const int cols[] = { 32, 33, 27 };
-const int rows[] = { 25, 26 };
+const int cols[] = { 32, 33 };
+const int rows[] = { 25, 26, 27 };
 
 #define NUM_COLS (sizeof(cols) / sizeof(cols[0]))
 #define NUM_ROWS (sizeof(rows) / sizeof(rows[0]))
 
+const char* keymap[3][3] = {
+  { "q", "w", "e" },
+  { "a", "s", "d" },
+  { "z", "x", "c"}
+};
+
 void setup() {
-  const char* keymap[2][3] = {
-    { "q", "w", "e" },
-    { "a", "s", "d" }
-  };
 
   Serial.begin(9600);
 
   bleKeyboard.begin();
-  // Establecemos las salidas
+  // Establecemos las salida\3aaqqqqqqqqqqqqqqqqqqzq
   for (int c = 0; c < NUM_COLS; c++) {
     pinMode(cols[c], OUTPUT);
   }
@@ -30,11 +32,13 @@ void setup() {
 }
 
 void loop() {
-  delay(1500);
+  //delay(1500);
   if (!bleKeyboard.isConnected()) return;
 
+  //Serial.println("BT Connected");
+
   for (int c = 0; c < NUM_COLS; c++) {
-    Serial.println(c);
+    // Serial.println(c);
     // Prendemos la columna
     digitalWrite(cols[c], HIGH);
     //? Aqui deberiamos agregar un delay?
@@ -43,10 +47,9 @@ void loop() {
     for (int r = 0; r < NUM_ROWS; r++) {
       bool asd = digitalRead(rows[r]);
       if (asd) {
-        Serial.println(": on");
-      } else {
-        Serial.println(": off");
-      }
+        Serial.print("Key: ");
+        Serial.println(keymap[r][c]);
+      } 
     }
 
     // Limpiamos la columna
