@@ -4,20 +4,26 @@
 BleKeyboard bleKeyboard;
 Bounce debouncer = Bounce();
 
-const int cols[] = { 36, 39, 34, 35, 32, 33 };
-const int rows[] = { 25, 26, 27, 14 };
+// GPIO6 a GPIO11 (flash)
+// GPIO34 a GPIO39 (solo entrada analógica)
+// GPIO36 y 39 (sin pull-up/down, solo ADC)
+// GPIO0, 2, 12, 15 (boot sensibles)
+// Evitar GPIO13 si no querés interferencias por el LED interno
+// GPIO1, 3 (UART, cuidado si usás USB)
 
+const int cols[] = { 14, 33, 25, 26, 27, 15 };
+const int rows[] = { 12, 4, 17 };
 #define NUM_COLS (sizeof(cols) / sizeof(cols[0]))
 #define NUM_ROWS (sizeof(rows) / sizeof(rows[0]))
 
-const char* keymap[3][3] = {
+const char* keymap[4][6] = {
   { "1", "q", "w", "e", "r", "t" },
-  { "2", "a", "s", "d" },
-  { "3", "z", "x", "c" }
+  { "2", "a", "s", "d", "f", "g" },
+  { "3", "z", "x", "c", "v", "b" },
+  { "4", "", "", "", "Enter", "Espacio" }
 };
 
 void setup() {
-
   Serial.begin(9600);
 
   bleKeyboard.begin();
@@ -32,27 +38,24 @@ void setup() {
 }
 
 void loop() {
-  //delay(1500);
+  Serial.print("!");
+  //
+  delay(400);
   if (!bleKeyboard.isConnected()) return;
 
-  //Serial.println("BT Connected");
-
   for (int c = 0; c < NUM_COLS; c++) {
-    // Serial.println(c);
-    // Prendemos la columna
     digitalWrite(cols[c], HIGH);
-    //? Aqui deberiamos agregar un delay?
 
-    // Recorremos las rows en busca de la activada
     for (int r = 0; r < NUM_ROWS; r++) {
-      bool asd = digitalRead(rows[r]);
-      if (asd) {
-        Serial.print("Key: ");
+      if (digitalRead(rows[r]) == HIGH) {
         Serial.println(keymap[r][c]);
+        String key = keymap[r][c];
+        if (key == "Enter") bleKeyboard.write(KEY_RETURN);
+        else if (key == "Espacio") bleKeyboard.write(' ');
+        else if (key.length() == 1) bleKeyboard.write(key[0]);
       }
     }
 
-    // Limpiamos la columna
     digitalWrite(cols[c], LOW);
   }
 }
